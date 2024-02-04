@@ -4,3 +4,5 @@ accelerate
 sentencepiece
 tensorboard
 torch==2.0.0+cu117
+numpy
+pandas

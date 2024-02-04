@@ -24,32 +24,6 @@ def preprocess_function(examples):
     model_inputs["labels"] = labels["input_ids"]
     return model_inputs
 
-def correct_text(text, model, tokenizer):
-    """
-    Corrects the given text using T5.
-
-    Args:
-        text (str): The text to be corrected.
-        model: The T5 model used for text correction.
-        tokenizer: The tokenizer used for encoding and decoding text.
-
-    Returns:
-        str: The corrected text.
-    """
-    # Prepend "correct: " to the input text
-    input_text = "correct: " + text
-
-    # Encode the input text using the tokenizer
-    input_ids = tokenizer.encode(input_text, return_tensors="pt")
-    input_ids = input_ids.to(model.device)
-    
-    # Adjust generation settings: increase the number of beams, adjust early stopping, etc.
-    outputs = model.generate(input_ids, max_length=50, num_beams=5, early_stopping=True)
-    
-    # Decode the generated output and remove special tokens
-    corrected_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    
-    return corrected_text
 
 
 ### Data Preparation ###
@@ -134,7 +108,7 @@ tokenized_datasets = dataset.map(preprocess_function, batched=True)
 
 # Arguments for the Trainer
 training_args = TrainingArguments(
-    output_dir=".\\results", 
+    output_dir=".\\results\\results-t5", 
     evaluation_strategy="epoch", 
     learning_rate=3e-4, 
     per_device_train_batch_size=8,  # Batch size for training
@@ -142,7 +116,7 @@ training_args = TrainingArguments(
     num_train_epochs=100, 
     weight_decay=0.01,  # Weight decay for regularization
     warmup_steps=500,  # Number of warmup steps for the learning rate scheduler
-    logging_dir='.\\logs', 
+    logging_dir='.\\results\\logs-t5', 
     logging_steps=50, 
     max_grad_norm=1.0,  # Maximum gradient norm for gradient clipping
     save_strategy="epoch",  # Save model checkpoint at the end of each epoch
@@ -150,18 +124,6 @@ training_args = TrainingArguments(
     metric_for_best_model="eval_loss",  # Metric used to identify the best model
     greater_is_better=False  # Lower eval_loss indicates a better model
     )
-
-# # Alternative training arguments
-# training_args = TrainingArguments(
-#     output_dir="./results",
-#     evaluation_strategy="epoch",
-#     #learning_rate=2e-5,
-#     learning_rate=3e-4,
-#     per_device_train_batch_size=8,
-#     per_device_eval_batch_size=8,
-#     num_train_epochs=100,
-#     weight_decay=0.01,
-# )
 
 trainer = Trainer(
     model=model,
@@ -173,21 +135,3 @@ trainer = Trainer(
 trainer.train()
 
 # tensorboard --logdir=./logs
-
-
-
-### Inference ###
-
-# Load the tokenizer and model
-model_name = 't5-small'
-tokenizer = T5Tokenizer.from_pretrained(model_name)
-model = T5ForConditionalGeneration.from_pretrained(".\\results\\checkpoint-400")
-
-# Check if CUDA is available
-if torch.cuda.is_available():
-    print("Model on GPU.")
-    model = model.cuda()  # Move the model to GPU
-else:
-    print("Model on CPU.")
-
-print(correct_text("mal", model, tokenizer))
