@@ -6,16 +6,6 @@ from torch.utils.data import Dataset
 import torch
 import json
 
-# Base directory
-base_path = "datasets/CDISC-SDTM sample study harvard"
-
-# Filenames for train and valid datasets
-filenames_train = ["ae-1.csv", "dm-1.csv", "eg-1.csv", "lb-1.csv", "mh-1.csv", "pe-1.csv", "vs-1.csv"]
-filenames_valid = ["ae-2.csv", "dm-2.csv", "eg-2.csv", "lb-2.csv", "mh-2.csv", "pe-2.csv", "vs-2.csv"]
-
-# Load the tokenizer
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-
 class ColumnDataDataset(Dataset):
     def __init__(self, inputs, labels, tokenizer, max_token_len=512):
         self.inputs = inputs
@@ -79,6 +69,33 @@ def compute_metrics(eval_pred):
     predictions = np.argmax(logits, axis=-1)
     return accuracy_metric.compute(predictions=predictions, references=labels)
 
+
+### Data Preparation ###
+
+# Base directory
+base_path = "datasets/CDISC-SDTM sample study harvard"
+
+# Filenames for train and valid datasets
+filenames_train = [
+    "ae-1.csv", 
+    "dm-1.csv", 
+    "eg-1.csv", 
+    "lb-1.csv", 
+    "mh-1.csv", 
+    "pe-1.csv", 
+    "vs-1.csv"
+    ]
+
+filenames_valid = [
+    "ae-2.csv", 
+    "dm-2.csv", 
+    "eg-2.csv", 
+    "lb-2.csv", 
+    "mh-2.csv", 
+    "pe-2.csv", 
+    "vs-2.csv"
+    ]
+
 # Collect unique column names from both training and validation datasets
 unique_column_names_train = collect_unique_column_names(filenames_train, base_path)
 unique_column_names_valid = collect_unique_column_names(filenames_valid, base_path)
@@ -98,9 +115,26 @@ with open(column_name_to_label_path, 'w') as file:
 train_inputs, train_labels, _ = process_files(filenames_train, base_path)
 eval_inputs, eval_labels, _ = process_files(filenames_valid, base_path)
 
+# Display training and validation inputs and labels
+print(train_inputs[5], train_labels[5])
+print(eval_inputs[5], eval_labels[5])
+
+
+# Load the tokenizer
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+
 # Create datasets
 train_dataset = ColumnDataDataset(train_inputs, train_labels, tokenizer)
 eval_dataset = ColumnDataDataset(eval_inputs, eval_labels, tokenizer)
+
+
+### Training ###
+
+# Initialize model
+model = BertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=len(column_name_to_label))
+
+# Load metric
+accuracy_metric = load_metric("accuracy")
 
 # Training arguments
 training_args = TrainingArguments(
@@ -118,12 +152,6 @@ training_args = TrainingArguments(
     metric_for_best_model="accuracy",
     learning_rate=3e-5,
 )
-
-# Initialize model
-model = BertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=len(column_name_to_label))
-
-# Load metric
-accuracy_metric = load_metric("accuracy")
 
 # Initialize Trainer
 trainer = Trainer(

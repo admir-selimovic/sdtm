@@ -88,7 +88,6 @@ df
 dataset = Dataset.from_pandas(df)
 
 
-
 ### Training ###
 
 # Load the tokenizer and model
@@ -134,4 +133,4 @@ trainer = Trainer(
 
 trainer.train()
 
-# tensorboard --logdir=./logs
+# tensorboard --logdir=./results/logs-t5

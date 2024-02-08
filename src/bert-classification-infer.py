@@ -79,7 +79,8 @@ def predict_column_names_with_probs(inputs: list, model: BertForSequenceClassifi
 
 
 # Define the path to load the trained model
-model_path = "models/bert"
+model_path = "models/sbert"
+
 
 # Load the tokenizer and model
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
@@ -99,6 +100,7 @@ with open(column_name_to_label_path, 'r') as file:
 
 # Reverse mapping from label to column name
 label_to_column_name = {v: k for k, v in column_name_to_label.items()}
+
 
 # Inference inputs
 base_path = "datasets/CDISC-SDTM sample study harvard"
@@ -130,9 +132,9 @@ df = pd.DataFrame({
     'Actual': actual_column_names,
     'Predicted': predicted_column_names,
     'Confidence': confidence_scores
-    }) # Create a DataFrame from the zipped lists
-output_file_path = 'predictions_with_confidence.csv' # Specify the path and filename for the CSV file
-df.to_csv(output_file_path, index=False) # Save the DataFrame to a CSV file
+    })
+output_file_path = 'predictions_with_confidence.csv' 
+df.to_csv(output_file_path, index=False) 
 
 # Calculate the number of correct and incorrect predictions
 correct_predictions = sum(1 for actual, predicted in zip(actual_column_names, predicted_column_names) if actual == predicted)
@@ -145,3 +147,4 @@ percentage_correct = (correct_predictions / total_predictions) * 100
 print(f"\nNumber of correct predictions: {correct_predictions}")
 print(f"Number of incorrect predictions: {incorrect_predictions}")
 print(f"Percentage of correct predictions: {percentage_correct:.2f}%")
+

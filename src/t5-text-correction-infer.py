@@ -32,7 +32,7 @@ def correct_text(text, model, tokenizer):
 # Load the tokenizer and model
 model_name = 't5-small'
 tokenizer = T5Tokenizer.from_pretrained(model_name)
-model = T5ForConditionalGeneration.from_pretrained(".\\models\\t5")
+model = T5ForConditionalGeneration.from_pretrained("./models/t5")
 
 # Check if CUDA is available
 if torch.cuda.is_available():
